@@ -299,6 +299,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 4px s
 
 <div id="app"></div>
 
+<script src="audio/manifest.js"></script>
+
 <script>
 /* =====================================================================
    CONTENT
@@ -517,7 +519,7 @@ const FRIEND = '🐶';
    SAVE DATA (lives only on this device)
    ===================================================================== */
 const KEY = 'choice-champs-v1';
-const DEFAULTS = { name: '', grownup: 'Mom', buddy: '🐻', voice: true, voiceName: '', rate: 0.95, sound: true, unlockAll: false, stars: {}, celebrated: [], prizes: {} };
+const DEFAULTS = { name: '', grownup: 'Mom', buddy: '🐻', voice: true, voiceName: '', rate: 1, sound: true, unlockAll: false, stars: {}, celebrated: [], prizes: {} };
 function load() {
   try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || '{}')); }
   catch (e) { return Object.assign({}, DEFAULTS); }
@@ -558,41 +560,85 @@ function voiceScore(v) {
   if (v.lang === 'en-US') s += 10; else if (/^en-(GB|AU|CA|IE)/i.test(v.lang)) s += 5;
   return s;
 }
+// Recorded natural voice: audio/manifest.js lists every pre-recorded line as
+// window.CC_CLIPS = { <hash of the spoken text>: 1, ... }. Lines that are not
+// recorded (or a missing manifest) fall back to the device's speech voice.
+const CLIPS = window.CC_CLIPS || {};
+const hasClips = Object.keys(CLIPS).length > 0;
+const useNatural = () => hasClips && (!S.voiceName || S.voiceName === 'natural');
+function clipHash(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); }
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function clipFor(text) {
+  const key = speakable(text);
+  if (CLIPS[clipHash(key)]) return 'audio/' + clipHash(key) + '.mp3';
+  // A line with the child's name in it: use the recording without the name.
+  if (S.name) {
+    const plain = key.replace(new RegExp('[, ]+' + reEsc(S.name) + '(?=\\W|$)', 'g'), '');
+    if (CLIPS[clipHash(plain)]) return 'audio/' + clipHash(plain) + '.mp3';
+  }
+  return null;
+}
+const player = typeof Audio !== 'undefined' ? new Audio() : null;
+if (player) { player.preload = 'auto'; player.preservesPitch = true; player.webkitPreservesPitch = true; }
+const RATES = [[0.8, 'Slow'], [1, 'Normal'], [1.2, 'Faster']];
+const rate = () => RATES.some(r => r[0] === S.rate) ? S.rate : 1;
+
 function pickVoice() {
   if (!synth) return;
   voiceList = synth.getVoices().filter(v => /^en/i.test(v.lang) && !NOVELTY.test(v.name))
     .sort((a, b) => voiceScore(b) - voiceScore(a));
   voice = (S.voiceName && voiceList.find(v => v.name === S.voiceName)) || voiceList[0] || null;
   const sel = document.getElementById('p-voicename');
-  if (sel && !sel.options.length) fillVoiceSelect(sel);
+  if (sel) fillVoiceSelect(sel);
 }
 function fillVoiceSelect(sel) {
-  sel.innerHTML = voiceList.length
-    ? voiceList.map(v => `<option value="${esc(v.name)}" ${voice && v.name === voice.name ? 'selected' : ''}>${esc(v.name)}${voiceScore(v) >= 60 ? ' ★' : ''}</option>`).join('')
-    : '<option value="">Default voice</option>';
+  const nat = useNatural();
+  sel.innerHTML = (hasClips ? `<option value="natural" ${nat ? 'selected' : ''}>Natural voice ★ (recommended)</option>` : '')
+    + (voiceList.length
+      ? voiceList.map(v => `<option value="${esc(v.name)}" ${!nat && voice && v.name === voice.name ? 'selected' : ''}>Device: ${esc(v.name)}</option>`).join('')
+      : hasClips ? '' : '<option value="">Default voice</option>');
 }
 if (synth) { pickVoice(); try { synth.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
 const speakable = t => t.replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim();
+function sayDevice(text, fin) {
+  if (!synth) return fin();
+  try {
+    const u = new SpeechSynthesisUtterance(speakable(text));
+    u.rate = 0.92 * rate(); u.pitch = 1;
+    if (voice) u.voice = voice;
+    u.onend = fin; u.onerror = fin;
+    synth.speak(u);
+    setTimeout(fin, 1500 + text.length * 85 / rate());
+  } catch (e) { fin(); }
+}
 function say(text) {
   return new Promise(res => {
-    if (!S.voice || !synth) return res();
+    if (!S.voice) return res();
     let done = false;
-    const fin = () => { if (!done) { done = true; res(); } };
+    const fin = () => { if (!done) { done = true; player && (player.onended = player.onerror = null); res(); } };
+    const src = useNatural() && player && clipFor(text);
+    if (!src) return sayDevice(text, fin);
     try {
-      const u = new SpeechSynthesisUtterance(speakable(text));
-      u.rate = S.rate || 0.95; u.pitch = 1;
-      if (voice) u.voice = voice;
-      u.onend = fin; u.onerror = fin;
-      synth.speak(u);
-      setTimeout(fin, 1200 + text.length * 85);
-    } catch (e) { fin(); }
+      player.onended = fin;
+      player.onerror = () => { if (!done) { player.onended = player.onerror = null; sayDevice(text, fin); } };
+      player.src = src;
+      player.playbackRate = rate();
+      const p = player.play();
+      if (p && p.catch) p.catch(() => { if (!done) { player.onended = player.onerror = null; sayDevice(text, fin); } });
+      setTimeout(fin, 3000 + text.length * 110 / rate());
+    } catch (e) { sayDevice(text, fin); }
   });
 }
-function hush() { seq++; try { synth && synth.cancel(); } catch (e) {} }
+function prefetch(lines) {
+  if (!useNatural()) return;
+  lines.forEach(t => { const s = clipFor(t); if (s) fetch(s).catch(() => {}); });
+}
+function hush() { seq++; try { synth && synth.cancel(); } catch (e) {} try { if (player) { player.onended = player.onerror = null; player.pause(); } } catch (e) {} }
 async function narrate(lines, onEach) {
   hush();
   const my = seq;
   lastNarration = [lines, onEach];
+  prefetch(lines.slice(1));
   for (let i = 0; i < lines.length; i++) {
     if (my !== seq) return;
     onEach && onEach(i);
@@ -755,8 +801,8 @@ function renderPlay() {
         <div class="actions"><button class="btn btn-next" data-act="after">Next ➜</button></div>`);
       SFX.yay(); confetti();
       for (let i = 0; i < run.earned; i++) setTimeout(() => SFX.star(i), 400 + i * 250);
-      const cheer = `Great job${S.name ? ', ' + S.name : ''}! You are a Choice Champ!` + (run.newSticker ? ' You got a new sticker!' : '');
-      narrate([fill(p.text), cheer]);
+      const cheer = [`Great job${S.name ? ', ' + S.name : ''}! You are a Choice Champ!`].concat(run.newSticker ? ['You got a new sticker!'] : []);
+      narrate([fill(p.text), ...cheer]);
     } else {
       paint(`<p class="result-banner oops">Uh oh!</p>
         ${stageHTML(p.bg, p.actors, 'small')}
@@ -865,7 +911,7 @@ function openPrize(id) {
   SFX.fanfare(); confetti(110);
   const lines = [`You won the ${c.title} trophy!`];
   if (b) lines.push(`And a new buddy, ${b.name}!`);
-  if (prize) lines.push(`You also earned a real prize: ${prize}! Go show ${S.grownup}!`);
+  if (prize) lines.push(fill('You also earned a real prize! Go show {G}!'));
   narrate(lines);
 }
 
@@ -958,7 +1004,7 @@ function renderParent() {
         <label class="toggle" for="p-sound">Sound effects <input type="checkbox" id="p-sound" ${S.sound ? 'checked' : ''}></label>
         <div class="row2" style="margin-top:12px">
           <div class="field"><label for="p-voicename">Voice (★ = best quality)</label><select id="p-voicename"></select></div>
-          <div class="field"><label for="p-rate">Speed</label><select id="p-rate">${[[0.8, 'Slow'], [0.95, 'Normal'], [1.05, 'A bit faster']].map(([r, l]) => `<option value="${r}" ${(S.rate || 0.95) === r ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div class="field"><label for="p-rate">Speed</label><select id="p-rate">${RATES.map(([r, l]) => `<option value="${r}" ${rate() === r ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         </div>
         <div class="pbtns"><button class="pbtn" data-act="testvoice">🔊 Test the voice</button></div>
         <details style="margin-top:10px"><summary>Still sounds robotic? Get a better voice (free)</summary>
@@ -1038,7 +1084,7 @@ const ACTIONS = {
   lockedbuddy: (e, el) => { const b = BUDDIES.find(x => x.e === e); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); narrate([`Finish ${chapter(b.unlock).title} to unlock ${b.name}!`]); },
   gate: renderGate,
   close: closeOverlay,
-  testvoice: () => { const was = S.voice; S.voice = true; narrate([`Hi${S.name ? ' ' + S.name : ''}! Let's make champion choices!`]); S.voice = was; },
+  testvoice: () => { const was = S.voice; S.voice = true; narrate([`Hi${S.name ? ', ' + S.name : ''}! Let's make champion choices!`]); S.voice = was; },
   reset: (_, el) => {
     if (!resetArmed) { resetArmed = true; el.classList.add('armed'); el.textContent = 'Tap again to erase everything'; setTimeout(() => { resetArmed = false; if (el.isConnected) { el.classList.remove('armed'); el.textContent = 'Reset all progress'; } }, 4000); return; }
     resetArmed = false;

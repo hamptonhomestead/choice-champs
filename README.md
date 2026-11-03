@@ -9,8 +9,25 @@ The whole game is one file: `choice-champs.html`. It is published as a Claude ar
 The file has no `<!doctype>` or `<head>` because the artifact host adds them. To preview it locally, wrap it with a UTF-8 charset header:
 
 ```bash
-mkdir -p /tmp/cc && { printf '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n'; cat choice-champs.html; } > /tmp/cc/index.html && python3 -m http.server 8765 --directory /tmp/cc
+mkdir -p /tmp/cc && ln -sfn "$PWD/audio" /tmp/cc/audio && { printf '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n'; cat choice-champs.html; } > /tmp/cc/index.html && python3 -m http.server 8765 --directory /tmp/cc
 ```
+
+## Voice
+
+Every line is pre-recorded in a natural voice (Kokoro, an open-source text-to-speech model) and stored in `audio/` as `<hash>.mp3`, where the hash is taken from the spoken text. `audio/manifest.js` lists which lines have recordings. A line with no recording falls back to the device's built-in voice, and parents can also switch to a device voice in the Grown-ups corner.
+
+When publishing the artifact, include `audio/manifest.js` and every `audio/*.mp3` file alongside the page.
+
+The child's name and custom prize text can't be pre-recorded, so the recorded lines leave them out.
+
+**After changing any story text, re-record:**
+
+```bash
+node tools/list-lines.js > /tmp/lines.json
+./venv/bin/python tools/make-voice.py /tmp/lines.json --models <folder with the model files>
+```
+
+Only new or changed lines are recorded. Setup steps are at the top of `tools/make-voice.py`. To change voices, pass `--voice` (for example `af_bella` or `am_michael`), which re-records everything.
 
 ## Adding stories
 
