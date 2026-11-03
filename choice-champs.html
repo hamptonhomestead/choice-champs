@@ -1,0 +1,1026 @@
+<title>Choice Champs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Choice Champs">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@700;800;900&display=swap">
+<style>
+/* Layout: one centered "toy box" column; every screen is a stage + chunky toy-block buttons a 4-year-old can hit. */
+:root {
+  --sky: #9ad8ff;
+  --sky-pale: #dff3ff;
+  --sky-deep: #2f8fe0;
+  --sun: #ffd23f;
+  --sun-deep: #e6a800;
+  --grass: #6bcb6e;
+  --grass-deep: #3a9a48;
+  --coral: #ff7b5c;
+  --coral-deep: #db5236;
+  --ink: #22304d;
+  --muted: #5b6987;
+  --paper: #fffaf0;
+  --white: #ffffff;
+  --shadow: rgba(34, 48, 77, .22);
+  --display: "Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Nunito", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 800;
+  font-size: 18px;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+input, select { -webkit-user-select: text; user-select: text; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; touch-action: manipulation; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 4px solid var(--ink); outline-offset: 3px; }
+
+#app {
+  min-height: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.screen { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+
+/* ---------- chunky toy buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 72px; padding: 10px 28px;
+  border-radius: 26px;
+  font-family: var(--display); font-weight: 800; font-size: 28px; line-height: 1;
+  background: var(--white); color: var(--ink);
+  box-shadow: 0 7px 0 var(--shadow);
+  transition: transform .08s, box-shadow .08s;
+}
+.btn:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--shadow); }
+.btn-play { background: var(--grass); color: var(--white); box-shadow: 0 7px 0 var(--grass-deep); font-size: 40px; min-height: 92px; }
+.btn-play:active { box-shadow: 0 2px 0 var(--grass-deep); }
+.btn-next { background: var(--sky-deep); color: var(--white); box-shadow: 0 7px 0 #1d65a8; }
+.btn-next:active { box-shadow: 0 2px 0 #1d65a8; }
+.btn-retry { background: var(--sun); box-shadow: 0 7px 0 var(--sun-deep); }
+.btn-retry:active { box-shadow: 0 2px 0 var(--sun-deep); }
+.btn-sticker b { background: var(--sun); border-radius: 999px; padding: 4px 12px; font-size: 22px; }
+.icon-btn {
+  width: 56px; height: 56px; flex: none; border-radius: 18px; background: var(--white);
+  font-size: 26px; display: grid; place-items: center; box-shadow: 0 5px 0 var(--shadow);
+}
+.icon-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--shadow); }
+
+/* ---------- top bar ---------- */
+.topbar { display: flex; align-items: center; gap: 12px; }
+.topbar h2 { flex: 1; min-width: 0; margin: 0; font-family: var(--display); font-size: 26px; line-height: 1.1; text-wrap: balance; }
+.chip { flex: none; background: var(--white); border-radius: 999px; padding: 8px 14px; font-size: 20px; box-shadow: 0 4px 0 var(--shadow); font-variant-numeric: tabular-nums; }
+
+/* ---------- home ---------- */
+.home { align-items: center; text-align: center; position: relative; justify-content: center; gap: 18px; padding-top: 8px; }
+.gear { position: absolute; top: 0; right: 0; width: 64px; height: 52px; border-radius: 16px; background: rgba(255,255,255,.55); font-size: 22px; }
+.gear small { display: block; font-size: 9px; letter-spacing: .04em; margin-top: -2px; white-space: nowrap; }
+.logo { font-family: var(--display); font-weight: 800; margin: 18px 0 0; font-size: clamp(52px, 15vw, 84px); line-height: .85; color: var(--white); text-shadow: 0 5px 0 var(--sky-deep); letter-spacing: -.01em; }
+.logo span { color: var(--sun); text-shadow: 0 5px 0 var(--sun-deep); }
+.buddy-big { font-size: clamp(96px, 30vw, 150px); line-height: 1.1; animation: bob 2.4s ease-in-out infinite; filter: drop-shadow(0 10px 0 rgba(34,48,77,.15)); }
+.hello { margin: 0; font-size: 19px; color: var(--ink); max-width: 30ch; }
+.home-actions { display: flex; flex-direction: column; gap: 18px; width: min(100%, 420px); }
+.cloud { position: absolute; font-size: 54px; opacity: .9; pointer-events: none; animation: drift 14s ease-in-out infinite alternate; }
+.cloud.c1 { top: 70px; left: -6px; }
+.cloud.c2 { top: 210px; right: -4px; font-size: 40px; animation-delay: -6s; }
+
+/* ---------- chapter map ---------- */
+.path { display: flex; flex-direction: column; gap: 18px; position: relative; padding-block: 6px 12px; }
+.path::before { content: ""; position: absolute; left: 50%; top: 30px; bottom: 30px; border-left: 6px dashed rgba(255,255,255,.8); transform: translateX(-50%); }
+.island {
+  position: relative; display: flex; align-items: center; gap: 14px; text-align: left;
+  width: min(88%, 520px); padding: 16px 18px; border-radius: 30px;
+  background: var(--white); box-shadow: 0 8px 0 var(--shadow);
+}
+.island:nth-child(odd) { align-self: flex-start; }
+.island:nth-child(even) { align-self: flex-end; }
+.island:active { transform: translateY(5px); box-shadow: 0 3px 0 var(--shadow); }
+.isl-icon { flex: none; width: 76px; height: 76px; border-radius: 24px; display: grid; place-items: center; font-size: 44px; background: var(--chip-bg); }
+.isl-text { display: flex; flex-direction: column; min-width: 0; }
+.isl-num { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.isl-title { font-family: var(--display); font-size: 26px; line-height: 1.05; }
+.isl-stars { font-size: 17px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.isl-trophy { position: absolute; top: -14px; right: -8px; font-size: 38px; animation: bob 2s ease-in-out infinite; }
+.island.locked { opacity: .7; filter: saturate(.3); }
+.c-sun { --chip-bg: var(--sun); --band: var(--sun); --band-deep: var(--sun-deep); }
+.c-coral { --chip-bg: var(--coral); --band: var(--coral); --band-deep: var(--coral-deep); }
+.c-grass { --chip-bg: var(--grass); --band: var(--grass); --band-deep: var(--grass-deep); }
+.c-sky { --chip-bg: var(--sky-deep); --band: var(--sky-deep); --band-deep: #1d65a8; }
+
+/* ---------- chapter screen ---------- */
+.ch-banner { background: var(--band); border-radius: 28px; padding: 18px 20px; display: flex; gap: 14px; align-items: center; box-shadow: 0 7px 0 var(--band-deep); }
+.ch-banner .big { font-size: 56px; line-height: 1; }
+.ch-banner p { margin: 0; font-size: 18px; }
+.ch-banner h3 { margin: 0; font-family: var(--display); font-size: 30px; line-height: 1; }
+.tiles { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 620px) { .tiles { grid-template-columns: repeat(3, 1fr); } }
+.tile {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 26px;
+  background: var(--white); box-shadow: 0 7px 0 var(--shadow); text-align: left;
+}
+@media (min-width: 620px) { .tile { flex-direction: column; text-align: center; padding: 20px 12px; } }
+.tile:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--shadow); }
+.tile-pic { flex: none; width: 76px; height: 76px; border-radius: 22px; display: grid; place-items: center; font-size: 44px; background: var(--sky-pale); }
+.tile.done .tile-pic { background: var(--sun); }
+.tile-title { font-family: var(--display); font-size: 24px; line-height: 1.05; display: block; }
+.stars3 { display: inline-flex; gap: 2px; font-size: 22px; margin-top: 4px; }
+.stars3 .off { filter: grayscale(1); opacity: .3; }
+
+/* ---------- scene stage ---------- */
+.stage {
+  position: relative; width: 100%; max-width: 100%; aspect-ratio: 4 / 3; max-height: 44vh;
+  border-radius: 30px; overflow: hidden; border: 5px solid var(--white);
+  box-shadow: 0 8px 0 var(--shadow); box-sizing: border-box;
+  --wall: var(--sky); --floor: var(--grass); --floor-at: 34%;
+  background: linear-gradient(to top, var(--floor) var(--floor-at), var(--wall) var(--floor-at));
+}
+.stage.small { aspect-ratio: 16 / 7; }
+.stage::before, .stage::after { content: ""; position: absolute; }
+.actors {
+  position: absolute; left: 0; right: 0; bottom: calc(var(--floor-at) - 9%);
+  display: flex; justify-content: center; align-items: flex-end; gap: 4%;
+}
+.actor { font-size: clamp(54px, 15vw, 110px); line-height: 1; animation: pop .45s cubic-bezier(.3,1.6,.5,1) both, bob 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * .12s), calc(var(--i) * .4s + .5s); }
+.stage.small .actor { font-size: clamp(46px, 12vw, 84px); }
+
+.bg-park { --wall: var(--sky); --floor: var(--grass); }
+.bg-park::before { width: 18%; aspect-ratio: 1; border-radius: 50%; background: var(--sun); top: 9%; right: 8%; box-shadow: 0 0 0 10px rgba(255,210,63,.35); }
+.bg-park::after { width: 30%; height: 10%; border-radius: 999px; background: var(--white); top: 14%; left: 8%; opacity: .9; }
+.bg-home { --wall: #ffe2b6; --floor: #c98f5c; }
+.bg-home::before { width: 26%; height: 30%; top: 10%; left: 9%; border-radius: 10px; background: linear-gradient(90deg, transparent 47%, var(--white) 47% 53%, transparent 53%), linear-gradient(transparent 47%, var(--white) 47% 53%, transparent 53%), var(--sky); border: 6px solid var(--white); }
+.bg-kitchen { --wall: #fff1c6; --floor: #e5a96a; background: linear-gradient(to top, var(--floor) var(--floor-at), transparent var(--floor-at)), repeating-linear-gradient(90deg, #fff1c6 0 28px, #ffe7a3 28px 56px); }
+.bg-kitchen::before { width: 22%; aspect-ratio: 1; top: 10%; right: 10%; border-radius: 50%; border: 6px solid var(--ink); background: var(--white); }
+.bg-bath { --floor: #bfe6f2; background: linear-gradient(to top, var(--floor) var(--floor-at), transparent var(--floor-at)), repeating-linear-gradient(0deg, #e7f6ff 0 30px, #cfeaff 30px 32px), #e7f6ff; }
+.bg-bath::before { width: 20%; height: 26%; top: 10%; left: 40%; border-radius: 40% 40% 12px 12px; background: var(--sky-pale); border: 6px solid var(--white); }
+.bg-bedroom { --wall: #34488c; --floor: #c89a6c; }
+.bg-bedroom::before { width: 14%; aspect-ratio: 1; top: 10%; right: 12%; border-radius: 50%; box-shadow: -14px 6px 0 0 #fff3b0; }
+.bg-bedroom::after { width: 4px; height: 4px; top: 20%; left: 20%; border-radius: 50%; background: #fff3b0; box-shadow: 60px -10px #fff3b0, 120px 20px #fff3b0, 30px 40px #fff3b0, 170px -4px #fff3b0; }
+.bg-store { --floor: #dfe3ea; background: linear-gradient(to top, var(--floor) var(--floor-at), transparent var(--floor-at)), repeating-linear-gradient(0deg, #ffffff 0 40px, #ff9f87 40px 48px), #fff; }
+.bg-play { --wall: #ffd9e2; --floor: #9fd8c6; }
+.bg-play::before { width: 60%; height: 10%; left: 20%; bottom: 12%; border-radius: 50%; background: #7fc8b2; }
+.bg-calm { background: radial-gradient(circle at 50% 40%, #e9fbf7, #b3ece0 55%, var(--sky) 100%); }
+
+/* ---------- caption bubble ---------- */
+.caption {
+  display: flex; align-items: center; gap: 12px; background: var(--white); border-radius: 26px;
+  padding: 14px 14px 14px 20px; box-shadow: 0 6px 0 var(--shadow);
+}
+.caption p { flex: 1; min-width: 0; margin: 0; font-size: clamp(19px, 4.6vw, 24px); line-height: 1.3; text-wrap: pretty; }
+.caption .icon-btn { background: var(--sun); box-shadow: 0 5px 0 var(--sun-deep); }
+.actions { display: flex; justify-content: center; gap: 14px; margin-top: auto; padding-top: 6px; }
+.actions .btn { flex: 1; max-width: 420px; }
+
+/* ---------- choices ---------- */
+.choices { display: flex; flex-direction: column; gap: 14px; }
+.choice {
+  display: flex; align-items: center; gap: 14px; text-align: left; width: 100%;
+  min-height: 84px; padding: 10px 16px 10px 10px; border-radius: 26px;
+  background: var(--paper); border: 4px solid var(--white); box-shadow: 0 7px 0 var(--shadow);
+  transition: transform .15s, border-color .15s, background .15s;
+  animation: pop .4s cubic-bezier(.3,1.6,.5,1) both; animation-delay: calc(var(--i) * .1s);
+}
+.choice:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--shadow); }
+.choice.reading { border-color: var(--sun); background: #fff4c4; transform: scale(1.025); }
+.ch-icon { flex: none; width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; font-size: 38px; background: var(--white); }
+.ch-label { flex: 1; min-width: 0; font-size: clamp(18px, 4.4vw, 22px); line-height: 1.2; }
+
+/* ---------- result ---------- */
+.result-banner { text-align: center; font-family: var(--display); font-size: clamp(34px, 9vw, 48px); line-height: 1; margin: 2px 0 0; color: var(--white); text-shadow: 0 4px 0 var(--grass-deep); }
+.result-banner.oops { text-shadow: 0 4px 0 var(--coral-deep); }
+.big-stars { display: flex; justify-content: center; gap: 10px; font-size: clamp(48px, 13vw, 68px); line-height: 1; }
+.big-stars span { animation: starpop .6s cubic-bezier(.3,1.8,.5,1) both; }
+.big-stars span:nth-child(2) { animation-delay: .25s; }
+.big-stars span:nth-child(3) { animation-delay: .5s; }
+.big-stars .off { filter: grayscale(1); opacity: .3; }
+.got-sticker { align-self: center; display: flex; align-items: center; gap: 10px; background: var(--sun); border-radius: 999px; padding: 6px 18px 6px 8px; box-shadow: 0 5px 0 var(--sun-deep); font-size: 19px; }
+.got-sticker span { font-size: 38px; }
+
+/* ---------- breathing ---------- */
+.breathe-stage { display: grid; place-items: center; }
+.balloon { font-size: clamp(70px, 18vw, 110px); transition: transform 2.4s ease-out; transform: scale(.7); transform-origin: 50% 85%; }
+.balloon.in { transition: transform 3s ease-out; transform: scale(1.9); }
+.side-buddy { position: absolute; left: 6%; bottom: 6%; font-size: clamp(46px, 12vw, 72px); }
+.breaths { display: flex; justify-content: center; gap: 14px; }
+.breaths span { width: 30px; height: 30px; border-radius: 50%; background: var(--white); opacity: .6; box-shadow: inset 0 0 0 4px var(--sky-deep); }
+.breaths span.on { background: var(--sky-deep); opacity: 1; animation: starpop .5s both; }
+.btn-hold { background: #4cc9b0; color: var(--white); box-shadow: 0 7px 0 #2a9a84; min-height: 96px; font-size: 26px; white-space: nowrap; touch-action: none; -webkit-user-select: none; user-select: none; }
+.btn-hold.holding { transform: translateY(5px) scale(.98); box-shadow: 0 2px 0 #2a9a84; }
+.btn-hold:disabled { opacity: .55; }
+
+/* ---------- celebration ---------- */
+.celebrate { align-items: center; text-align: center; justify-content: center; gap: 18px; }
+.celebrate .actions { flex-direction: column; align-items: center; width: 100%; }
+.celebrate .actions .btn { width: 100%; }
+.cel-title { margin: 0; font-family: var(--display); font-size: clamp(40px, 11vw, 60px); line-height: 1; color: var(--white); text-shadow: 0 5px 0 var(--band-deep, var(--sky-deep)); text-wrap: balance; }
+.chest { font-size: clamp(130px, 40vw, 200px); line-height: 1; animation: wiggle 1.2s ease-in-out infinite; }
+.trophy { font-size: clamp(120px, 34vw, 180px); line-height: 1; animation: spinin .9s cubic-bezier(.3,1.5,.5,1) both; }
+.reward-card { display: flex; align-items: center; gap: 14px; text-align: left; width: min(100%, 460px); background: var(--white); border-radius: 26px; padding: 14px 18px; box-shadow: 0 6px 0 var(--shadow); box-sizing: border-box; animation: pop .5s .5s both; }
+.reward-card .em { font-size: 52px; flex: none; }
+.reward-card p { margin: 0; font-size: 19px; line-height: 1.25; min-width: 0; }
+.reward-card small { display: block; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.reward-card.prize { background: var(--sun); box-shadow: 0 6px 0 var(--sun-deep); }
+
+/* ---------- sticker book ---------- */
+.book { background: var(--paper); border-radius: 30px; padding: 16px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 8px 0 var(--shadow); }
+.book h3 { margin: 0 0 8px; font-family: var(--display); font-size: 22px; line-height: 1; }
+.slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.slot { aspect-ratio: 1; border-radius: 22px; display: grid; place-items: center; font-size: clamp(34px, 10vw, 52px); background: var(--white); border: 3px dashed #cdd6e6; }
+.slot.has { border: 3px solid var(--sun); background: #fff6d1; animation: pop .4s both; }
+.slot.trophy-slot.has { background: var(--sun); }
+.slot.empty { color: #cdd6e6; font-family: var(--display); font-size: 30px; }
+
+/* ---------- overlays ---------- */
+.overlay { position: fixed; inset: 0; z-index: 40; background: rgba(34,48,77,.55); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.sheet { background: var(--paper); border-radius: 30px; padding: 22px; width: min(100%, 480px); box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; text-align: center; max-height: 100%; overflow: auto; }
+.sheet h3 { margin: 0; font-family: var(--display); font-size: 28px; line-height: 1.05; }
+.sheet p { margin: 0; font-size: 17px; color: var(--muted); }
+.buddy-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.buddy-opt { aspect-ratio: 1; border-radius: 22px; background: var(--white); font-size: clamp(36px, 10vw, 50px); box-shadow: 0 5px 0 var(--shadow); display: grid; place-items: center; position: relative; }
+.buddy-opt.sel { background: var(--sun); box-shadow: 0 5px 0 var(--sun-deep); }
+.buddy-opt.locked { filter: grayscale(1) brightness(.4); opacity: .5; }
+.buddy-opt small { position: absolute; bottom: 4px; right: 6px; font-size: 18px; filter: none; }
+.hold-ring { --p: 0; width: 150px; height: 150px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center; background: conic-gradient(var(--grass) calc(var(--p) * 1turn), #dfe5ef 0); touch-action: none; }
+.hold-ring span { width: 118px; height: 118px; border-radius: 50%; background: var(--white); display: grid; place-items: center; font-size: 17px; color: var(--ink); line-height: 1.15; }
+.text-btn { font-size: 17px; color: var(--muted); text-decoration: underline; padding: 8px; }
+
+/* ---------- parent corner ---------- */
+.parent { background: var(--paper); border-radius: 26px; padding: 18px; display: flex; flex-direction: column; gap: 20px; font-weight: 700; font-size: 16px; }
+.parent h3 { margin: 0; font-family: var(--display); font-size: 22px; line-height: 1.1; }
+.parent p { margin: 0; line-height: 1.45; color: var(--muted); max-width: 62ch; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-weight: 800; color: var(--ink); }
+.field input, .field select { font: inherit; font-weight: 700; font-size: 17px; padding: 12px 14px; border-radius: 14px; border: 2px solid #cdd6e6; background: var(--white); color: var(--ink); min-width: 0; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 460px) { .row2 { grid-template-columns: 1fr; } }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #e6eaf2; color: var(--ink); font-weight: 800; }
+.toggle input { width: 26px; height: 26px; accent-color: var(--grass-deep); flex: none; }
+.tips details { border-top: 1px solid #e6eaf2; padding: 10px 0; }
+.tips summary { cursor: pointer; font-weight: 800; color: var(--ink); }
+.tips ul { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; color: var(--muted); line-height: 1.45; }
+.tips li b { color: var(--ink); }
+.pbtns { display: flex; flex-wrap: wrap; gap: 10px; }
+.pbtn { padding: 12px 18px; border-radius: 14px; background: var(--white); border: 2px solid #cdd6e6; font-weight: 800; font-size: 16px; }
+.pbtn.danger { border-color: var(--coral); color: var(--coral-deep); }
+.pbtn.danger.armed { background: var(--coral); color: var(--white); }
+
+/* ---------- confetti ---------- */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.confetti i { position: absolute; top: -24px; width: 12px; height: 18px; border-radius: 4px; animation: fall var(--t) cubic-bezier(.3,.2,.6,1) var(--d) forwards; }
+
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes starpop { 0% { transform: scale(0) rotate(-40deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes wiggle { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-8deg) scale(1.05); } 40% { transform: rotate(8deg) scale(1.05); } 60% { transform: rotate(-4deg); } }
+@keyframes spinin { from { transform: scale(0) rotate(-200deg); } to { transform: scale(1) rotate(0); } }
+@keyframes drift { from { transform: translateX(0); } to { transform: translateX(30px); } }
+@keyframes fall { to { transform: translate(var(--x), 110vh) rotate(var(--r)); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+.shake { animation: shake .35s 2 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div id="app"></div>
+
+<script>
+/* =====================================================================
+   CONTENT
+   Each scenario: a few story steps, a question, and choices.
+   ok:true choices finish the scenario; ok:false choices show a gentle
+   consequence and let the child try again. {G} = what the child calls
+   the grown-up (Mom, Dad...), {N} = child's name. BUDDY / GROWNUP /
+   FRIEND in actor lists are swapped for the right emoji.
+   ===================================================================== */
+const CHAPTERS = [
+  {
+    id: 'switch', title: 'Time to Switch', icon: '🔄', color: 'sun', trophy: '🏆',
+    blurb: 'Stopping the fun to do the next thing',
+    scenarios: [
+      {
+        id: 'park', title: 'Park Time', icon: '🛝', sticker: '🚀',
+        steps: [
+          { bg: 'park', actors: ['BUDDY', '🛝'], text: 'You are playing at the park. Wheee! The slide is SO much fun!' },
+          { bg: 'park', actors: ['GROWNUP', 'BUDDY'], text: '{G} says: "Time to stop playing. Let\'s go home and eat dinner!"' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '👋', label: 'Say "OK!" and wave bye-bye to the slide', bg: 'kitchen', actors: ['BUDDY', '🍝', 'GROWNUP'], text: 'You said "OK!" and waved bye-bye. Dinner is yummy, and {G} is so proud of you. The park will be there tomorrow!' },
+          { ok: true, icon: '☝️', label: 'Ask nicely: "One more slide, please?"', bg: 'park', actors: ['BUDDY', '🛝', '😄'], text: 'You asked nicely! {G} said, "OK, ONE more." Wheee! Then you walked home for dinner. Asking nicely works!' },
+          { ok: false, icon: '😡', label: 'Yell "NO!" and run away', bg: 'park', actors: ['GROWNUP', '😟'], text: 'Uh oh. Running away is not safe, and {G} felt worried. Now there is no time to play after dinner.' }
+        ],
+        tip: 'Give a 5-minute and a 1-minute warning before leaving. A goodbye ritual (wave bye to the slide) makes leaving feel like their choice.'
+      },
+      {
+        id: 'tv', title: 'Show Is Over', icon: '📺', sticker: '🦆',
+        steps: [
+          { bg: 'home', actors: ['BUDDY', '📺', '🍿'], text: 'You are watching your favorite show. It is so funny!' },
+          { bg: 'home', actors: ['GROWNUP', '🛁'], text: '{G} says: "The show is over now. Time for your bath!"' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '🔘', label: 'Push the OFF button myself', bg: 'bath', actors: ['BUDDY', '🛁', '🫧'], text: 'You turned off the TV all by yourself. Big kid! Now it is splash time.' },
+          { ok: true, icon: '🦆', label: 'Pick a bath toy to bring', bg: 'bath', actors: ['BUDDY', '🦆', '🛁'], text: 'Great idea! You picked your rubber ducky. Now bath time is fun time too!' },
+          { ok: false, icon: '😭', label: 'Throw the remote and cry', bg: 'home', actors: ['📺', '💥', 'GROWNUP'], text: 'Oh no! Throwing things can break them. Now the TV has to take a break tomorrow too.' }
+        ],
+        tip: 'Agree on "how many shows" before the TV goes on. Giving a job (pressing the off button) hands back a little control.'
+      },
+      {
+        id: 'toys', title: 'Clean-Up Time', icon: '🧸', sticker: '🚂',
+        steps: [
+          { bg: 'bedroom', actors: ['BUDDY', '🧸', '🚂', '🧱'], text: 'You built a giant train track with all your toys!' },
+          { bg: 'bedroom', actors: ['GROWNUP', '🌙'], text: '{G} says: "It is almost bedtime. Time to clean up the toys!"' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '🏁', label: 'Make it a race and clean up fast', bg: 'bedroom', actors: ['BUDDY', '🧺', '✨'], text: 'Ready, set, GO! You cleaned up super fast. Now there is time for an extra bedtime story!' },
+          { ok: true, icon: '🤝', label: 'Say: "Can you help me?"', bg: 'bedroom', actors: ['GROWNUP', 'BUDDY', '🧺'], text: 'You asked for help, and you and {G} cleaned up together. Teamwork!' },
+          { ok: false, icon: '🙈', label: 'Hide under the blanket', bg: 'bedroom', actors: ['🛏️', '🧸', '🧱'], text: 'Hmm. Hiding does not clean up the toys. Now it is late, and there is no time for a story.' }
+        ],
+        tip: 'Turn clean-up into a game: race a timer or sing a clean-up song. A "save it for tomorrow" shelf helps with special builds.'
+      }
+    ]
+  },
+  {
+    id: 'feelings', title: 'Big Feelings', icon: '🌈', color: 'coral', trophy: '🌈',
+    blurb: 'What to do when you feel mad or sad',
+    scenarios: [
+      {
+        id: 'candy', title: 'No Candy Today', icon: '🍭', sticker: '🍭',
+        steps: [
+          { bg: 'store', actors: ['BUDDY', '🛒', '🍭'], text: 'You are at the store with {G}. You see a BIG lollipop!' },
+          { bg: 'store', actors: ['GROWNUP', '🙅'], text: '{G} says: "Not today. We are not buying candy."' },
+          { type: 'breathe', text: 'Your tummy feels mad! Let\'s blow up the balloon to feel calm.' }
+        ],
+        ask: 'You feel calmer. What should you do now?',
+        choices: [
+          { ok: true, icon: '🙂', label: 'Say "OK" and help push the cart', bg: 'store', actors: ['BUDDY', '🛒', 'GROWNUP'], text: 'You stayed calm! {G} says, "Thank you! You are a great helper!"' },
+          { ok: true, icon: '📝', label: 'Ask: "Can it go on my wish list?"', bg: 'store', actors: ['BUDDY', '📝', '🍭'], text: 'Smart idea! {G} put the lollipop on your wish list for a special day.' },
+          { ok: false, icon: '🤬', label: 'Scream and kick the cart', bg: 'store', actors: ['🛒', '💥', 'GROWNUP'], text: 'Uh oh. Screaming and kicking make everyone upset. Now you have to leave the store.' }
+        ],
+        tip: 'Name the feeling first: "You really wanted that. It\'s hard to hear no." A wish list (a photo on your phone) honors the want without giving in.'
+      },
+      {
+        id: 'tower', title: 'Tower Crash', icon: '🏰', sticker: '🏰',
+        steps: [
+          { bg: 'play', actors: ['BUDDY', '🧱', '🏰'], text: 'You built the tallest tower EVER!' },
+          { bg: 'play', actors: ['BUDDY', '💥', '🧱'], text: 'CRASH! It fell all the way down!' },
+          { type: 'breathe', text: 'You feel frustrated! Let\'s blow up the balloon to feel calm.' }
+        ],
+        ask: 'You feel calmer. What should you do now?',
+        choices: [
+          { ok: true, icon: '🔁', label: 'Say: "That\'s OK. I can try again!"', bg: 'play', actors: ['BUDDY', '🏰', '🌟'], text: 'You tried again, and this time it was even BIGGER! Never give up!' },
+          { ok: true, icon: '🙋', label: 'Ask for help building', bg: 'play', actors: ['GROWNUP', '🏰', 'BUDDY'], text: 'You and {G} built it together with a strong bottom. So tall!' },
+          { ok: false, icon: '🦶', label: 'Kick all the blocks', bg: 'play', actors: ['🧱', '💥', '🧱'], text: 'Ouch! The blocks flew everywhere, and now there is a big mess to clean up.' }
+        ],
+        tip: 'Model it out loud: "Oops! Mistakes help us learn." Praise the trying, not the tower.'
+      },
+      {
+        id: 'game', title: 'Losing a Game', icon: '🎲', sticker: '🎲',
+        steps: [
+          { bg: 'play', actors: ['BUDDY', '🎲', 'FRIEND'], text: 'You are playing a game with your friend.' },
+          { bg: 'play', actors: ['FRIEND', '🏆'], text: 'Your friend wins the game!' },
+          { type: 'breathe', text: 'You feel sad and mad! Let\'s blow up the balloon to feel calm.' }
+        ],
+        ask: 'You feel calmer. What should you do now?',
+        choices: [
+          { ok: true, icon: '🤝', label: 'Say: "Good game! Let\'s play again!"', bg: 'play', actors: ['BUDDY', '🤝', 'FRIEND'], text: 'You were a good sport! Your friend smiled, and you played again. So fun!' },
+          { ok: true, icon: '🗣️', label: 'Say: "I feel sad that I lost"', bg: 'play', actors: ['FRIEND', '🤗', 'BUDDY'], text: 'You used your words! Your friend gave you a hug. It is OK to feel sad.' },
+          { ok: false, icon: '🗑️', label: 'Throw the game pieces', bg: 'play', actors: ['FRIEND', '😢', '🎲'], text: 'Oh no! Some pieces got lost, and your friend does not want to play anymore.' }
+        ],
+        tip: 'Play short board games at home and let them lose sometimes. Practice saying "good game" together, win or lose.'
+      }
+    ]
+  },
+  {
+    id: 'friends', title: 'Friend Power', icon: '🤝', color: 'grass', trophy: '🤝',
+    blurb: 'Sharing, taking turns and being kind',
+    scenarios: [
+      {
+        id: 'truck', title: 'My Truck', icon: '🚚', sticker: '🚒',
+        steps: [
+          { bg: 'play', actors: ['BUDDY', '🚚'], text: 'You are playing with your big red truck. Vroom!' },
+          { bg: 'play', actors: ['FRIEND', '🙏', 'BUDDY'], text: 'Your friend asks: "Can I play with the truck?"' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '⏳', label: 'Say: "You can have a turn when I\'m done"', bg: 'play', actors: ['BUDDY', '🚚', 'FRIEND'], text: 'You used your words! When you were done, you gave your friend a turn. Nice!' },
+          { ok: true, icon: '🤗', label: 'Say: "Let\'s play trucks together!"', bg: 'play', actors: ['BUDDY', '🚚', 'FRIEND'], text: 'Now you are both playing! Two friends are more fun than one.' },
+          { ok: false, icon: '✋', label: 'Grab it and push your friend', bg: 'play', actors: ['FRIEND', '😭'], text: 'Ouch! Pushing hurts. Your friend is crying and wants to go home.' }
+        ],
+        tip: '"When I\'m done" is a fair answer. Sharing doesn\'t have to mean handing it over right away. Practice turns with a kitchen timer.'
+      },
+      {
+        id: 'swing', title: 'Waiting Turn', icon: '🎠', sticker: '🎠',
+        steps: [
+          { bg: 'park', actors: ['BUDDY', '🤩'], text: 'You want to go on the swing!' },
+          { bg: 'park', actors: ['FRIEND', '🎠'], text: 'But someone else is on the swing right now.' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '🔢', label: 'Wait and count to 20', bg: 'park', actors: ['BUDDY', '🎠', '😄'], text: '1, 2, 3... 20! Now it is your turn. Waiting was worth it. Wheee!' },
+          { ok: true, icon: '🗣️', label: 'Ask: "Can I go next?"', bg: 'park', actors: ['FRIEND', '👍', 'BUDDY'], text: 'Your friend said, "Yes!" You got the very next turn. Asking works!' },
+          { ok: false, icon: '😤', label: 'Pull the kid off the swing', bg: 'park', actors: ['FRIEND', '🤕'], text: 'Uh oh! That is not safe. Somebody got hurt.' }
+        ],
+        tip: 'Waiting is a skill. Practice counting, singing, or "I spy" while waiting in real lines.'
+      },
+      {
+        id: 'hurt', title: 'Friend Fell Down', icon: '🩹', sticker: '💖',
+        steps: [
+          { bg: 'park', actors: ['FRIEND', '😢', '🩹'], text: 'Oh no! Your friend fell down and is crying.' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '💬', label: 'Ask: "Are you OK?"', bg: 'park', actors: ['BUDDY', '💖', 'FRIEND'], text: 'You were so kind! Your friend felt better, and you played together.' },
+          { ok: true, icon: '🏃', label: 'Go get a grown-up to help', bg: 'park', actors: ['GROWNUP', '🩹', 'FRIEND'], text: 'Great thinking! {G} gave your friend a bandage. You are a helper!' },
+          { ok: false, icon: '😂', label: 'Laugh at your friend', bg: 'park', actors: ['FRIEND', '😭'], text: 'Oh. Laughing made your friend feel even sadder.' }
+        ],
+        tip: 'Ask "How do you think they feel?" while reading books or watching shows. Spotting feelings builds empathy.'
+      }
+    ]
+  },
+  {
+    id: 'care', title: 'Taking Care of Me', icon: '🪥', color: 'sky', trophy: '👑',
+    blurb: 'Teeth, getting dressed and trying new food',
+    scenarios: [
+      {
+        id: 'teeth', title: 'Sugar Bugs', icon: '🪥', sticker: '🦷',
+        steps: [
+          { bg: 'bath', actors: ['BUDDY', '🪥'], text: 'It is time to brush your teeth before bed.' },
+          { bg: 'bath', actors: ['🦷', '👾', '👾'], text: 'Look! Sugar bugs are hiding on your teeth!' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '🪥', label: 'Brush, brush! Get the sugar bugs!', bg: 'bath', actors: ['BUDDY', '🦷', '✨'], text: 'Scrub, scrub! All the sugar bugs are gone. Sparkly teeth!' },
+          { ok: true, icon: '🎵', label: 'Brush while singing a song', bg: 'bath', actors: ['BUDDY', '🎵', '🦷'], text: 'You brushed until the song was over. Shiny and clean!' },
+          { ok: false, icon: '🏃', label: 'Run away from the toothbrush', bg: 'bath', actors: ['🦷', '👾', '👾'], text: 'Uh oh! The sugar bugs are still there, and they can make teeth hurt.' }
+        ],
+        tip: 'Play a 2-minute song while brushing, or let them brush your teeth first, then you do theirs.'
+      },
+      {
+        id: 'dressed', title: 'Getting Dressed', icon: '👕', sticker: '👟',
+        steps: [
+          { bg: 'bedroom', actors: ['BUDDY', '🛏️', '☀️'], text: 'Good morning! It is time to get dressed.' },
+          { bg: 'bedroom', actors: ['GROWNUP', '👕', '👖'], text: '{G} says: "Let\'s get dressed. We need to leave soon!"' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '👕', label: 'Pick a shirt: red or blue?', bg: 'bedroom', actors: ['BUDDY', '👕', '😎'], text: 'You picked the blue shirt and got dressed. Ready to go!' },
+          { ok: true, icon: '⏱️', label: 'Race the timer to get dressed', bg: 'bedroom', actors: ['BUDDY', '⏱️', '👟'], text: 'Beat the clock! You were so fast!' },
+          { ok: false, icon: '🛌', label: 'Stay in bed and say "No!"', bg: 'bedroom', actors: ['GROWNUP', '⏰', '😟'], text: 'Hmm. Now everyone is late and has to rush. No time for fun before we go.' }
+        ],
+        tip: 'Offer two choices you\'re happy with ("red or blue?"). Laying clothes out the night before saves the morning.'
+      },
+      {
+        id: 'food', title: 'Brave Bite', icon: '🥦', sticker: '🥦',
+        steps: [
+          { bg: 'kitchen', actors: ['BUDDY', '🍽️', '🥦'], text: 'There is something new on your plate. It is broccoli!' },
+          { bg: 'kitchen', actors: ['🥦', '🌳'], text: 'It looks like a tiny tree!' }
+        ],
+        ask: 'What should you do?',
+        choices: [
+          { ok: true, icon: '🦖', label: 'Take one tiny dinosaur bite', bg: 'kitchen', actors: ['BUDDY', '🥦', '🦖'], text: 'Chomp! You tried it! Maybe you like it, maybe not. Trying is brave!' },
+          { ok: true, icon: '🙂', label: 'Say: "No, thank you"', bg: 'kitchen', actors: ['BUDDY', '🙂', 'GROWNUP'], text: 'You said "no, thank you" so nicely. {G} says you can try again another day.' },
+          { ok: false, icon: '🤢', label: 'Throw it on the floor', bg: 'kitchen', actors: ['🥦', '💥', 'GROWNUP'], text: 'Splat! Now there is a mess to clean up, and dinner is over.' }
+        ],
+        tip: 'A new food can take 10–15 tries. Keep it low-pressure: one "learning bite" is a win.'
+      }
+    ]
+  }
+];
+
+const BUDDIES = [
+  { e: '🐻', name: 'Bear' }, { e: '🐰', name: 'Bunny' }, { e: '🦊', name: 'Fox' }, { e: '🐼', name: 'Panda' },
+  { e: '🦄', name: 'Unicorn', unlock: 'switch' }, { e: '🐲', name: 'Dragon', unlock: 'feelings' },
+  { e: '🦖', name: 'Dino', unlock: 'friends' }, { e: '🐧', name: 'Penguin', unlock: 'care' }
+];
+const GROWNUPS = { Mom: '👩', Mommy: '👩', Mama: '👩', Dad: '👨', Daddy: '👨', Papa: '👨', Grandma: '👵', Grandpa: '👴', Teacher: '🧑‍🏫' };
+const FRIEND = '🐶';
+
+/* =====================================================================
+   SAVE DATA (lives only on this device)
+   ===================================================================== */
+const KEY = 'choice-champs-v1';
+const DEFAULTS = { name: '', grownup: 'Mom', buddy: '🐻', voice: true, sound: true, unlockAll: false, stars: {}, celebrated: [], prizes: {} };
+function load() {
+  try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || '{}')); }
+  catch (e) { return Object.assign({}, DEFAULTS); }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+let S = load();
+
+const app = document.getElementById('app');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const chapter = id => CHAPTERS.find(c => c.id === id);
+const fill = t => t.replace(/\{G\}/g, S.grownup).replace(/\{N\}/g, S.name || 'Champ');
+const actor = a => a === 'BUDDY' ? S.buddy : a === 'GROWNUP' ? (GROWNUPS[S.grownup] || '🧑') : a === 'FRIEND' ? FRIEND : a;
+const chapterDone = c => c.scenarios.every(s => S.stars[s.id] > 0);
+const chapterOpen = i => S.unlockAll || i === 0 || chapterDone(CHAPTERS[i - 1]);
+const chapterStars = c => c.scenarios.reduce((n, s) => n + (S.stars[s.id] || 0), 0);
+const totalStars = () => CHAPTERS.reduce((n, c) => n + chapterStars(c), 0);
+const buddyOpen = b => !b.unlock || chapterDone(chapter(b.unlock));
+const stickerCount = () => CHAPTERS.reduce((n, c) => n + c.scenarios.filter(s => S.stars[s.id] > 0).length + (chapterDone(c) ? 1 : 0), 0);
+const stars3 = n => `<span class="stars3" aria-label="${n} of 3 stars">${[1, 2, 3].map(i => `<span class="${i <= n ? '' : 'off'}">⭐</span>`).join('')}</span>`;
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* =====================================================================
+   VOICE (read-aloud, since most 4-year-olds can't read yet)
+   ===================================================================== */
+const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
+let voice = null, seq = 0, lastNarration = null;
+function pickVoice() {
+  if (!synth) return;
+  const vs = synth.getVoices().filter(v => /^en/i.test(v.lang));
+  const prefer = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Allison', 'Ava'];
+  voice = prefer.map(p => vs.find(v => v.name.includes(p))).find(Boolean) || vs.find(v => v.lang === 'en-US') || vs[0] || null;
+}
+if (synth) { pickVoice(); try { synth.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
+const speakable = t => t.replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim();
+function say(text) {
+  return new Promise(res => {
+    if (!S.voice || !synth) return res();
+    let done = false;
+    const fin = () => { if (!done) { done = true; res(); } };
+    try {
+      const u = new SpeechSynthesisUtterance(speakable(text));
+      u.rate = 0.9; u.pitch = 1.12;
+      if (voice) u.voice = voice;
+      u.onend = fin; u.onerror = fin;
+      synth.speak(u);
+      setTimeout(fin, 1200 + text.length * 85);
+    } catch (e) { fin(); }
+  });
+}
+function hush() { seq++; try { synth && synth.cancel(); } catch (e) {} }
+async function narrate(lines, onEach) {
+  hush();
+  const my = seq;
+  lastNarration = [lines, onEach];
+  for (let i = 0; i < lines.length; i++) {
+    if (my !== seq) return;
+    onEach && onEach(i);
+    await say(lines[i]);
+  }
+  if (my === seq && onEach) onEach(-1);
+}
+
+/* =====================================================================
+   SOUND EFFECTS (synthesized, no files)
+   ===================================================================== */
+let actx = null;
+function audio() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, at, dur, type = 'triangle', vol = 0.12) {
+  const a = S.sound && audio(); if (!a) return;
+  const t = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+const SFX = {
+  tap() { tone(700, 0, 0.07, 'sine', 0.06); },
+  yay() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 0.3)); },
+  oops() { tone(392, 0, 0.2, 'sine', 0.1); tone(311, 0.2, 0.35, 'sine', 0.1); },
+  star(i) { tone(880 + i * 180, 0, 0.25, 'triangle', 0.09); },
+  fanfare() { [[523, 0], [523, .15], [523, .3], [659, .45], [784, .75], [659, .95], [1047, 1.15]].forEach(([f, t]) => tone(f, t, 0.35, 'square', 0.05)); }
+};
+
+function confetti(n = 70) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div'); box.className = 'confetti';
+  const colors = ['#ffd23f', '#ff7b5c', '#6bcb6e', '#2f8fe0', '#ffffff', '#ff9fc4'];
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('i');
+    p.style.left = Math.random() * 100 + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty('--x', (Math.random() * 160 - 80) + 'px');
+    p.style.setProperty('--r', (Math.random() * 900 - 450) + 'deg');
+    p.style.setProperty('--t', (1.8 + Math.random() * 1.6) + 's');
+    p.style.setProperty('--d', (Math.random() * .5) + 's');
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 4200);
+}
+
+/* =====================================================================
+   SCREENS
+   ===================================================================== */
+function topbar(back, title, arg = '') {
+  return `<header class="topbar">
+    <button class="icon-btn" data-act="${back}" data-arg="${arg}" aria-label="Back">⬅️</button>
+    <h2>${title}</h2>
+    <span class="chip" aria-label="Total stars">⭐ ${totalStars()}</span>
+  </header>`;
+}
+
+function renderHome() {
+  hush(); run = null; closeOverlay();
+  app.innerHTML = `<main class="screen home">
+    <span class="cloud c1" aria-hidden="true">☁️</span><span class="cloud c2" aria-hidden="true">☁️</span>
+    <button class="gear" data-act="gate" aria-label="Grown-ups corner">⚙️<small>GROWN-UPS</small></button>
+    <h1 class="logo">Choice<br><span>Champs</span></h1>
+    <button class="buddy-big" data-act="buddies" aria-label="Change your buddy">${S.buddy}</button>
+    <p class="hello">Hi${S.name ? ', ' + esc(S.name) : ''}! Tap your buddy to pick a new one.</p>
+    <div class="home-actions">
+      <button class="btn btn-play" data-act="map">▶ Play</button>
+      <button class="btn btn-sticker" data-act="stickers">My Stickers <b>${stickerCount()}</b></button>
+    </div>
+  </main>`;
+}
+
+function renderMap() {
+  hush(); run = null;
+  app.innerHTML = `<div class="screen">
+    ${topbar('home', 'Pick an adventure')}
+    <div class="path">
+      ${CHAPTERS.map((c, i) => {
+        const open = chapterOpen(i);
+        return `<button class="island c-${c.color} ${open ? '' : 'locked'}" data-act="${open ? 'chapter' : 'locked'}" data-arg="${c.id}">
+          <span class="isl-icon">${open ? c.icon : '🔒'}</span>
+          <span class="isl-text">
+            <span class="isl-num">Chapter ${i + 1}</span>
+            <span class="isl-title">${c.title}</span>
+            <span class="isl-stars">⭐ ${chapterStars(c)} / ${c.scenarios.length * 3}</span>
+          </span>
+          ${chapterDone(c) ? `<span class="isl-trophy" aria-label="Trophy won">${c.trophy}</span>` : ''}
+        </button>`;
+      }).join('')}
+    </div>
+  </div>`;
+  narrate(['Pick an adventure!']);
+}
+
+function renderChapter(id) {
+  hush(); run = null;
+  const c = chapter(id);
+  app.innerHTML = `<div class="screen c-${c.color}">
+    ${topbar('map', c.title)}
+    <div class="ch-banner"><span class="big">${c.icon}</span><div><h3>${c.title}</h3><p>${c.blurb}</p></div></div>
+    <div class="tiles">
+      ${c.scenarios.map(s => {
+        const n = S.stars[s.id] || 0;
+        return `<button class="tile ${n ? 'done' : ''}" data-act="play" data-arg="${c.id}:${s.id}">
+          <span class="tile-pic">${n ? s.sticker : s.icon}</span>
+          <span><span class="tile-title">${s.title}</span>${stars3(n)}</span>
+        </button>`;
+      }).join('')}
+    </div>
+  </div>`;
+  narrate([c.title + '! Pick a story.']);
+}
+
+/* ---------- playing a scenario ---------- */
+let run = null;
+function startScenario(chId, scId) {
+  const c = chapter(chId), sc = c.scenarios.find(s => s.id === scId);
+  run = { c, sc, phase: 'step', step: 0, tries: 0, picked: null, earned: 0, newSticker: false, choices: shuffle(sc.choices.slice()) };
+  renderPlay();
+}
+function stageHTML(bg, actors, cls = '') {
+  return `<div class="stage bg-${bg} ${cls}"><div class="actors">${actors.map((a, i) => `<span class="actor" style="--i:${i}">${actor(a)}</span>`).join('')}</div></div>`;
+}
+function captionHTML(text) {
+  return `<div class="caption"><p>${esc(text)}</p><button class="icon-btn" data-act="replay" aria-label="Hear it again">🔊</button></div>`;
+}
+function paint(inner) {
+  app.innerHTML = `<div class="screen play c-${run.c.color}">${topbar('chapter', run.sc.title, run.c.id)}${inner}</div>`;
+}
+const lastSceneBg = () => { const s = run.sc.steps.filter(x => x.bg); return s.length ? s[s.length - 1].bg : 'park'; };
+
+function renderPlay() {
+  const { sc } = run;
+  if (run.phase === 'step') {
+    const st = sc.steps[run.step];
+    if (st.type === 'breathe') return renderBreathe(st);
+    paint(`${stageHTML(st.bg, st.actors)}${captionHTML(fill(st.text))}
+      <div class="actions"><button class="btn btn-next" data-act="next">Next ➜</button></div>`);
+    narrate([fill(st.text)]);
+  } else if (run.phase === 'choose') {
+    paint(`${stageHTML(lastSceneBg(), ['BUDDY', '🤔'], 'small')}${captionHTML(fill(sc.ask))}
+      <div class="choices">${run.choices.map((ch, i) => `<button class="choice" style="--i:${i}" data-act="pick" data-arg="${i}">
+        <span class="ch-icon">${ch.icon}</span><span class="ch-label">${esc(fill(ch.label))}</span></button>`).join('')}</div>`);
+    const cards = () => app.querySelectorAll('.choice');
+    narrate([fill(sc.ask), ...run.choices.map(ch => fill(ch.label))], i => {
+      cards().forEach((el, k) => el.classList.toggle('reading', k === i - 1));
+    });
+  } else {
+    const p = run.picked;
+    if (p.ok) {
+      paint(`<p class="result-banner">Champion choice!</p>
+        ${stageHTML(p.bg, p.actors, 'small')}
+        ${captionHTML(fill(p.text))}
+        <div class="big-stars" aria-label="${run.earned} stars">${[1, 2, 3].map(i => `<span class="${i <= run.earned ? '' : 'off'}">⭐</span>`).join('')}</div>
+        ${run.newSticker ? `<div class="got-sticker"><span>${run.sc.sticker}</span> New sticker!</div>` : ''}
+        <div class="actions"><button class="btn btn-next" data-act="after">Next ➜</button></div>`);
+      SFX.yay(); confetti();
+      for (let i = 0; i < run.earned; i++) setTimeout(() => SFX.star(i), 400 + i * 250);
+      const cheer = `Great job${S.name ? ', ' + S.name : ''}! You are a Choice Champ!` + (run.newSticker ? ' You got a new sticker!' : '');
+      narrate([fill(p.text), cheer]);
+    } else {
+      paint(`<p class="result-banner oops">Uh oh!</p>
+        ${stageHTML(p.bg, p.actors, 'small')}
+        ${captionHTML(fill(p.text))}
+        <div class="actions"><button class="btn btn-retry" data-act="retry">🔁 Try again</button></div>`);
+      SFX.oops();
+      narrate([fill(p.text), 'Let\'s try a different choice!']);
+    }
+  }
+}
+
+function pick(i) {
+  const ch = run.choices[i];
+  run.tries++;
+  run.picked = ch;
+  if (ch.ok) {
+    const prev = S.stars[run.sc.id] || 0;
+    run.earned = Math.max(1, 4 - run.tries);
+    run.newSticker = prev === 0;
+    S.stars[run.sc.id] = Math.max(prev, run.earned);
+    save();
+  }
+  run.phase = 'result';
+  renderPlay();
+}
+
+function afterScenario() {
+  const { c, sc } = run;
+  if (chapterDone(c) && !S.celebrated.includes(c.id)) return renderCelebrate(c);
+  const next = c.scenarios[c.scenarios.indexOf(sc) + 1];
+  if (next) startScenario(c.id, next.id); else renderChapter(c.id);
+}
+
+/* ---------- belly-breathing balloon ---------- */
+function renderBreathe(st) {
+  paint(`<div class="stage bg-calm breathe-stage"><div class="balloon" id="balloon">🎈</div><span class="side-buddy">${S.buddy}</span></div>
+    ${captionHTML(fill(st.text))}
+    <div class="breaths" id="breaths" aria-label="Breaths">${'<span></span>'.repeat(3)}</div>
+    <div class="actions" id="breatheActions"><button class="btn btn-hold" id="holdBtn">Hold to breathe in</button></div>`);
+  narrate([fill(st.text), 'Press and hold the button, and breathe in slowly.']);
+
+  const btn = document.getElementById('holdBtn'), balloon = document.getElementById('balloon');
+  let count = 0, holding = false, t0 = 0, resting = false;
+  const down = e => {
+    e.preventDefault();
+    if (resting || holding || count >= 3) return;
+    holding = true; t0 = performance.now();
+    try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+    btn.classList.add('holding'); btn.textContent = 'Breathe in… 🌬️';
+    balloon.classList.add('in');
+    narrate(['Breathe in, slowly.']);
+  };
+  const up = () => {
+    if (!holding) return;
+    holding = false;
+    btn.classList.remove('holding');
+    balloon.classList.remove('in');
+    if (performance.now() - t0 < 1200) {
+      btn.textContent = 'Hold to breathe in';
+      narrate(['Hold a little longer. Nice and slow.']);
+      return;
+    }
+    count++;
+    document.querySelectorAll('#breaths span')[count - 1].classList.add('on');
+    SFX.star(count);
+    resting = true;
+    btn.disabled = true;
+    btn.textContent = 'Blow it out… 😮‍💨';
+    narrate(['And blow it all out.']);
+    setTimeout(() => {
+      resting = false;
+      if (count < 3) { btn.disabled = false; btn.textContent = 'Again! Hold me'; return; }
+      document.querySelector('.caption p').textContent = 'You feel calmer. Great breathing!';
+      document.getElementById('breatheActions').innerHTML = '<button class="btn btn-next" data-act="next">Next ➜</button>';
+      narrate(['You feel calmer. Great breathing!']);
+    }, 2400);
+  };
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointercancel', up);
+  btn.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/* ---------- chapter prize ---------- */
+function renderCelebrate(c) {
+  hush(); run = null;
+  if (!S.celebrated.includes(c.id)) S.celebrated.push(c.id);
+  save();
+  app.innerHTML = `<div class="screen celebrate c-${c.color}">
+    <h2 class="cel-title">Chapter complete!</h2>
+    <button class="chest" data-act="open" data-arg="${c.id}" aria-label="Open your present">🎁</button>
+    <p class="hello">Tap the present!</p>
+  </div>`;
+  SFX.fanfare(); confetti(40);
+  narrate(['You finished the whole chapter! Tap the present!']);
+}
+function openPrize(id) {
+  const c = chapter(id), b = BUDDIES.find(x => x.unlock === id), prize = (S.prizes[id] || '').trim();
+  app.innerHTML = `<div class="screen celebrate c-${c.color}">
+    <h2 class="cel-title">${c.title} trophy!</h2>
+    <div class="trophy">${c.trophy}</div>
+    ${b ? `<div class="reward-card"><span class="em">${b.e}</span><p><small>New buddy</small>You can play as ${b.name}!</p></div>` : ''}
+    ${prize ? `<div class="reward-card prize"><span class="em">🎟️</span><p><small>Real-life prize</small>${esc(prize)}! Show ${esc(S.grownup)}!</p></div>` : ''}
+    <div class="actions">${b ? `<button class="btn btn-next" data-act="usebuddy" data-arg="${b.e}">Play as ${b.name} ${b.e}</button>` : ''}<button class="btn" data-act="map">Back to the map ➜</button></div>
+  </div>`;
+  SFX.fanfare(); confetti(110);
+  const lines = [`You won the ${c.title} trophy!`];
+  if (b) lines.push(`And a new buddy, ${b.name}!`);
+  if (prize) lines.push(`You also earned a real prize: ${prize}! Go show ${S.grownup}!`);
+  narrate(lines);
+}
+
+/* ---------- sticker book ---------- */
+function renderStickers() {
+  hush(); run = null;
+  app.innerHTML = `<div class="screen">
+    ${topbar('home', 'My Stickers')}
+    <div class="book">
+      ${CHAPTERS.map(c => `<section>
+        <h3>${c.icon} ${c.title}</h3>
+        <div class="slots">
+          ${c.scenarios.map(s => S.stars[s.id] ? `<div class="slot has" title="${esc(s.title)}">${s.sticker}</div>` : `<div class="slot empty">?</div>`).join('')}
+          ${chapterDone(c) ? `<div class="slot trophy-slot has" title="Trophy">${c.trophy}</div>` : `<div class="slot empty">🏆</div>`}
+        </div>
+      </section>`).join('')}
+      <section>
+        <h3>🐾 Buddies</h3>
+        <div class="slots">${BUDDIES.map(b => `<div class="slot ${buddyOpen(b) ? 'has' : 'empty'}">${buddyOpen(b) ? b.e : '?'}</div>`).join('')}</div>
+      </section>
+    </div>
+  </div>`;
+  const n = stickerCount();
+  narrate([n ? `You have ${n} sticker${n === 1 ? '' : 's'}! Play more to fill your book.` : 'Your sticker book is empty. Play to win stickers!']);
+}
+
+/* ---------- overlays: buddy picker + grown-up gate ---------- */
+function overlay(html) {
+  closeOverlay();
+  const o = document.createElement('div');
+  o.className = 'overlay'; o.id = 'overlay'; o.innerHTML = html;
+  o.addEventListener('click', e => { if (e.target === o) closeOverlay(); });
+  document.body.appendChild(o);
+  return o;
+}
+function closeOverlay() { const o = document.getElementById('overlay'); if (o) o.remove(); }
+
+function renderBuddies() {
+  overlay(`<div class="sheet">
+    <h3>Pick your buddy</h3>
+    <div class="buddy-grid">${BUDDIES.map(b => {
+      const open = buddyOpen(b);
+      return `<button class="buddy-opt ${b.e === S.buddy ? 'sel' : ''} ${open ? '' : 'locked'}" data-act="${open ? 'usebuddy' : 'lockedbuddy'}" data-arg="${b.e}" aria-label="${b.name}${open ? '' : ' (locked)'}">${b.e}${open ? '' : '<small>🔒</small>'}</button>`;
+    }).join('')}</div>
+    <p>Finish chapters to unlock more buddies!</p>
+  </div>`);
+  narrate(['Pick your buddy!']);
+}
+
+function renderGate() {
+  const o = overlay(`<div class="sheet">
+    <h3>Grown-ups only</h3>
+    <p>Press and hold the circle for 3 seconds.</p>
+    <div class="hold-ring" id="ring"><span>Hold<br>here</span></div>
+    <button class="text-btn" data-act="close">Cancel</button>
+  </div>`);
+  const ring = o.querySelector('#ring');
+  let raf = 0, t0 = 0;
+  const tick = () => {
+    const p = Math.min(1, (performance.now() - t0) / 3000);
+    ring.style.setProperty('--p', p);
+    if (p >= 1) { closeOverlay(); renderParent(); return; }
+    raf = requestAnimationFrame(tick);
+  };
+  ring.addEventListener('pointerdown', e => { e.preventDefault(); try { ring.setPointerCapture(e.pointerId); } catch (_) {} t0 = performance.now(); raf = requestAnimationFrame(tick); });
+  const stop = () => { cancelAnimationFrame(raf); ring.style.setProperty('--p', 0); };
+  ring.addEventListener('pointerup', stop);
+  ring.addEventListener('pointercancel', stop);
+  ring.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/* ---------- grown-ups corner ---------- */
+function renderParent() {
+  hush(); run = null;
+  const opts = Object.keys(GROWNUPS).map(k => `<option ${k === S.grownup ? 'selected' : ''}>${k}</option>`).join('');
+  app.innerHTML = `<div class="screen">
+    ${topbar('home', 'Grown-ups corner')}
+    <div class="parent" id="parent">
+      <section class="field-group" style="display:flex;flex-direction:column;gap:12px">
+        <h3>About your child</h3>
+        <div class="row2">
+          <div class="field"><label for="p-name">Child's name</label><input id="p-name" maxlength="20" value="${esc(S.name)}" placeholder="Used in cheers"></div>
+          <div class="field"><label for="p-grownup">They call you…</label><select id="p-grownup">${opts}</select></div>
+        </div>
+      </section>
+
+      <section>
+        <h3>Sound</h3>
+        <label class="toggle" for="p-voice">Read everything out loud <input type="checkbox" id="p-voice" ${S.voice ? 'checked' : ''}></label>
+        <label class="toggle" for="p-sound">Sound effects <input type="checkbox" id="p-sound" ${S.sound ? 'checked' : ''}></label>
+        <div class="pbtns"><button class="pbtn" data-act="testvoice">🔊 Test the voice</button></div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:12px">
+        <h3>Real-life prizes</h3>
+        <p>Optional. When a chapter is finished, the game tells your child they earned this prize and to come show you. Leave blank for no real prize.</p>
+        ${CHAPTERS.map(c => `<div class="field"><label for="p-prize-${c.id}">${c.icon} ${c.title}</label><input id="p-prize-${c.id}" data-prize="${c.id}" maxlength="40" value="${esc(S.prizes[c.id] || '')}" placeholder="e.g. Ice cream trip"></div>`).join('')}
+      </section>
+
+      <section>
+        <h3>Chapters</h3>
+        <label class="toggle" for="p-unlock">Unlock all chapters (jump to the one you need) <input type="checkbox" id="p-unlock" ${S.unlockAll ? 'checked' : ''}></label>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:10px">
+        <h3>How to use it</h3>
+        <p>Play together the first few times and talk about each choice. The game never punishes. A "not great" choice shows what happens next, then lets your child try again. Fewer tries earns more stars.</p>
+        <p>The real learning happens later. When the moment comes in real life, remind them: "Remember the park game? What was the champion choice?" Then praise it when they do it.</p>
+      </section>
+
+      <section class="tips">
+        <h3>Tips for each story</h3>
+        ${CHAPTERS.map(c => `<details><summary>${c.icon} ${c.title}</summary><ul>${c.scenarios.map(s => `<li><b>${s.title}${S.stars[s.id] ? ' ' + '⭐'.repeat(S.stars[s.id]) : ''}:</b> ${esc(s.tip)}</li>`).join('')}</ul></details>`).join('')}
+      </section>
+
+      <section>
+        <h3>Progress</h3>
+        <p>${totalStars()} of ${CHAPTERS.length * 9} stars. Progress is saved on this device only.</p>
+        <div class="pbtns" style="margin-top:10px"><button class="pbtn danger" id="resetBtn" data-act="reset">Reset all progress</button></div>
+      </section>
+    </div>
+  </div>`;
+
+  const root = document.getElementById('parent');
+  const onEdit = e => {
+    const t = e.target;
+    if (t.id === 'p-name') S.name = t.value.trim();
+    else if (t.id === 'p-grownup') S.grownup = t.value;
+    else if (t.id === 'p-voice') { S.voice = t.checked; if (!S.voice) hush(); }
+    else if (t.id === 'p-sound') S.sound = t.checked;
+    else if (t.id === 'p-unlock') S.unlockAll = t.checked;
+    else if (t.dataset.prize) S.prizes[t.dataset.prize] = t.value;
+    save();
+  };
+  root.addEventListener('input', onEdit);
+  root.addEventListener('change', onEdit);
+}
+
+/* =====================================================================
+   TAP HANDLING
+   ===================================================================== */
+let resetArmed = false;
+const ACTIONS = {
+  home: renderHome,
+  map: () => { closeOverlay(); renderMap(); },
+  chapter: id => renderChapter(id),
+  locked: (id, el) => { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); narrate(['Finish the chapter before this one to unlock it!']); },
+  play: arg => { const [c, s] = arg.split(':'); startScenario(c, s); },
+  next: () => { run.step++; if (run.step >= run.sc.steps.length) run.phase = 'choose'; renderPlay(); },
+  pick: i => pick(+i),
+  retry: () => { run.phase = 'choose'; run.choices = shuffle(run.sc.choices.slice()); renderPlay(); },
+  after: afterScenario,
+  replay: () => { if (lastNarration) narrate(...lastNarration); },
+  open: openPrize,
+  stickers: renderStickers,
+  buddies: renderBuddies,
+  usebuddy: e => { S.buddy = e; save(); closeOverlay(); renderHome(); },
+  lockedbuddy: (e, el) => { const b = BUDDIES.find(x => x.e === e); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); narrate([`Finish ${chapter(b.unlock).title} to unlock ${b.name}!`]); },
+  gate: renderGate,
+  close: closeOverlay,
+  testvoice: () => { const was = S.voice; S.voice = true; narrate([`Hi${S.name ? ' ' + S.name : ''}! Let's make champion choices!`]); S.voice = was; },
+  reset: (_, el) => {
+    if (!resetArmed) { resetArmed = true; el.classList.add('armed'); el.textContent = 'Tap again to erase everything'; setTimeout(() => { resetArmed = false; if (el.isConnected) { el.classList.remove('armed'); el.textContent = 'Reset all progress'; } }, 4000); return; }
+    resetArmed = false;
+    S.stars = {}; S.celebrated = []; save();
+    renderParent();
+  }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  audio();
+  if (b.dataset.act !== 'pick') SFX.tap();
+  const fn = ACTIONS[b.dataset.act];
+  if (fn) fn(b.dataset.arg, b);
+});
+
+renderHome();
+</script>
