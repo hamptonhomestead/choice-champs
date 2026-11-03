@@ -517,7 +517,7 @@ const FRIEND = '🐶';
    SAVE DATA (lives only on this device)
    ===================================================================== */
 const KEY = 'choice-champs-v1';
-const DEFAULTS = { name: '', grownup: 'Mom', buddy: '🐻', voice: true, sound: true, unlockAll: false, stars: {}, celebrated: [], prizes: {} };
+const DEFAULTS = { name: '', grownup: 'Mom', buddy: '🐻', voice: true, voiceName: '', rate: 0.95, sound: true, unlockAll: false, stars: {}, celebrated: [], prizes: {} };
 function load() {
   try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || '{}')); }
   catch (e) { return Object.assign({}, DEFAULTS); }
@@ -543,12 +543,33 @@ function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.fl
    VOICE (read-aloud, since most 4-year-olds can't read yet)
    ===================================================================== */
 const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
-let voice = null, seq = 0, lastNarration = null;
+let voice = null, voiceList = [], seq = 0, lastNarration = null;
+// Novelty voices on Apple devices that sound like robots or effects.
+const NOVELTY = /Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Good News|Hysterical|Jester|Junior|Organ|Pipe Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Ralph|Fred|Kathy|Grandma|Grandpa|Eddy|Flo|Reed|Rocko|Sandy|Shelley/i;
+function voiceScore(v) {
+  const n = v.name;
+  let s = 0;
+  if (/Premium/i.test(n)) s += 100;
+  if (/Enhanced/i.test(n)) s += 80;
+  if (/Natural|Neural|Online/i.test(n)) s += 70;   // Edge/Windows neural voices
+  if (/Siri/i.test(n)) s += 60;
+  if (/^Google/i.test(n)) s += 40;                  // Chrome/Android cloud voices
+  if (/Ava|Zoe|Allison|Evan|Nathan|Noelle|Susan|Joelle|Aria|Jenny|Samantha/i.test(n)) s += 15;
+  if (v.lang === 'en-US') s += 10; else if (/^en-(GB|AU|CA|IE)/i.test(v.lang)) s += 5;
+  return s;
+}
 function pickVoice() {
   if (!synth) return;
-  const vs = synth.getVoices().filter(v => /^en/i.test(v.lang));
-  const prefer = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Allison', 'Ava'];
-  voice = prefer.map(p => vs.find(v => v.name.includes(p))).find(Boolean) || vs.find(v => v.lang === 'en-US') || vs[0] || null;
+  voiceList = synth.getVoices().filter(v => /^en/i.test(v.lang) && !NOVELTY.test(v.name))
+    .sort((a, b) => voiceScore(b) - voiceScore(a));
+  voice = (S.voiceName && voiceList.find(v => v.name === S.voiceName)) || voiceList[0] || null;
+  const sel = document.getElementById('p-voicename');
+  if (sel && !sel.options.length) fillVoiceSelect(sel);
+}
+function fillVoiceSelect(sel) {
+  sel.innerHTML = voiceList.length
+    ? voiceList.map(v => `<option value="${esc(v.name)}" ${voice && v.name === voice.name ? 'selected' : ''}>${esc(v.name)}${voiceScore(v) >= 60 ? ' ★' : ''}</option>`).join('')
+    : '<option value="">Default voice</option>';
 }
 if (synth) { pickVoice(); try { synth.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
 const speakable = t => t.replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim();
@@ -559,7 +580,7 @@ function say(text) {
     const fin = () => { if (!done) { done = true; res(); } };
     try {
       const u = new SpeechSynthesisUtterance(speakable(text));
-      u.rate = 0.9; u.pitch = 1.12;
+      u.rate = S.rate || 0.95; u.pitch = 1;
       if (voice) u.voice = voice;
       u.onend = fin; u.onerror = fin;
       synth.speak(u);
@@ -935,7 +956,16 @@ function renderParent() {
         <h3>Sound</h3>
         <label class="toggle" for="p-voice">Read everything out loud <input type="checkbox" id="p-voice" ${S.voice ? 'checked' : ''}></label>
         <label class="toggle" for="p-sound">Sound effects <input type="checkbox" id="p-sound" ${S.sound ? 'checked' : ''}></label>
+        <div class="row2" style="margin-top:12px">
+          <div class="field"><label for="p-voicename">Voice (★ = best quality)</label><select id="p-voicename"></select></div>
+          <div class="field"><label for="p-rate">Speed</label><select id="p-rate">${[[0.8, 'Slow'], [0.95, 'Normal'], [1.05, 'A bit faster']].map(([r, l]) => `<option value="${r}" ${(S.rate || 0.95) === r ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+        </div>
         <div class="pbtns"><button class="pbtn" data-act="testvoice">🔊 Test the voice</button></div>
+        <details style="margin-top:10px"><summary>Still sounds robotic? Get a better voice (free)</summary>
+          <p style="margin-top:8px"><b>iPhone / iPad:</b> Settings → Accessibility → Spoken Content → Voices → English. Download a voice marked <b>Premium</b> or <b>Enhanced</b> (Ava, Zoe and Evan sound most natural). Then reopen this game and pick it above.</p>
+          <p style="margin-top:6px"><b>Android:</b> Settings → search "Text-to-speech" → Preferred engine: Speech Services by Google → Install voice data → English. Then pick a voice above.</p>
+          <p style="margin-top:6px"><b>Computer:</b> Microsoft Edge has the most natural voices (marked "Natural"). Chrome's "Google" voices are next best.</p>
+        </details>
       </section>
 
       <section style="display:flex;flex-direction:column;gap:12px">
@@ -975,10 +1005,13 @@ function renderParent() {
     else if (t.id === 'p-grownup') S.grownup = t.value;
     else if (t.id === 'p-voice') { S.voice = t.checked; if (!S.voice) hush(); }
     else if (t.id === 'p-sound') S.sound = t.checked;
+    else if (t.id === 'p-voicename') { S.voiceName = t.value; pickVoice(); }
+    else if (t.id === 'p-rate') S.rate = +t.value;
     else if (t.id === 'p-unlock') S.unlockAll = t.checked;
     else if (t.dataset.prize) S.prizes[t.dataset.prize] = t.value;
     save();
   };
+  pickVoice(); fillVoiceSelect(document.getElementById('p-voicename'));
   root.addEventListener('input', onEdit);
   root.addEventListener('change', onEdit);
 }
